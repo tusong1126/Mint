@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useFileStorage } from "../../hooks/useFileStorage";
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 interface Memo {
   id: string;
@@ -17,6 +18,7 @@ export default function Memo() {
   const [search, setSearch] = useState("");
   const [timeFilter, setTimeFilter] = useState<"all" | "today" | "week" | "month" | "year" | "lastYear">("week");
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Memo | null>(null);
 
   const resetForm = () => {
     setTitle("");
@@ -57,6 +59,7 @@ export default function Memo() {
   const deleteMemo = (id: string) => {
     if (editingId === id) resetForm();
     setMemos((prev) => prev.filter((m) => m.id !== id));
+    setDeleteTarget(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -115,48 +118,44 @@ export default function Memo() {
   };
 
   return (
-    <div className="flex h-full -m-6">
+    <div className="flex h-[calc(100%+40px)] -m-6 ml-[-30px]">
       <div className="w-[260px] flex flex-col min-w-0 overflow-y-auto">
-        {memos.length > 0 && (
-          <div className="px-6 pt-5 pb-3 shrink-0">
-            <input
-              className="w-full py-2 px-3.5 border border-border rounded-lg bg-card text-text-primary text-sm outline-none transition-all duration-200 focus:border-accent/50 focus:ring-2 focus:ring-accent/10 placeholder:text-text-secondary/50"
-              type="text"
-              placeholder={`搜索 ${timeFiltered.length} 条备忘录...`}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-        )}
+        <div className="px-4 pt-5 pb-3 shrink-0">
+          <input
+            className="w-full py-2 px-3.5 border border-border rounded-lg bg-card text-text-primary text-sm outline-none transition-all duration-200 focus:border-accent/50 focus:ring-2 focus:ring-accent/10 placeholder:text-text-secondary/50"
+            type="text"
+            placeholder={`搜索 ${timeFiltered.length} 条备忘录...`}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
 
-        {memos.length > 0 && (
-          <div className="px-6 pb-3 shrink-0">
-            <div className="flex bg-card rounded-lg p-1 border border-border/50">
-              {(["all", "today", "week", "month", "year", "lastYear"] as const).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setTimeFilter(f)}
-                  className={`flex-1 py-1.5 rounded-md text-[10px] font-medium transition-all duration-200
+        <div className="px-4 pb-3 shrink-0">
+          <div className="flex bg-card rounded-lg p-1 border border-border/50">
+            {(["all", "today", "week", "month", "year", "lastYear"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setTimeFilter(f)}
+                className={`flex-1 py-1.5 rounded-md text-[10px] font-medium transition-all duration-200
                     ${
                       timeFilter === f
                         ? "bg-primary text-accent shadow-sm"
                         : "text-text-secondary hover:text-text-primary hover:bg-hover"
                     }`}
-                >
-                  {{ all: "全部", today: "今天", week: "本周", month: "本月", year: "今年", lastYear: "去年" }[f]}
-                </button>
-              ))}
-            </div>
+              >
+                {{ all: "全部", today: "今天", week: "本周", month: "本月", year: "今年", lastYear: "去年" }[f]}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
 
-        <div className="flex-1 overflow-y-auto px-6 pb-6">
+        <div className="flex-1 overflow-y-auto px-4 pb-6">
           {filtered.length === 0 ? (
             <div className="flex items-center justify-center h-full min-h-[200px]">
               <div className="text-center">
                 <span className="text-4xl block mb-3 opacity-30">📒</span>
                 <span className="text-text-muted text-sm">
-                  {memos.length === 0 ? "暂无备忘录，在左侧创建第一条吧" : "没有匹配的备忘录"}
+                  {memos.length === 0 ? "暂无备忘录，去创建一条吧" : "没有匹配的备忘录"}
                 </span>
               </div>
             </div>
@@ -199,7 +198,7 @@ export default function Memo() {
                           编辑
                         </button>
                         <button
-                          onClick={() => deleteMemo(memo.id)}
+                          onClick={() => setDeleteTarget(memo)}
                           className="flex-1 py-2 text-[12px] text-text-secondary hover:text-danger hover:bg-danger/5 transition-colors cursor-pointer border-l border-border/30"
                         >
                           删除
@@ -260,6 +259,16 @@ export default function Memo() {
           </p>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="删除备忘录"
+        message={`确定要删除「${deleteTarget?.title || "无标题"}」吗？此操作不可撤销。`}
+        confirmText="删除"
+        onConfirm={() => deleteTarget && deleteMemo(deleteTarget.id)}
+        onCancel={() => setDeleteTarget(null)}
+        danger
+      />
     </div>
   );
 }

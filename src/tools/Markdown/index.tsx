@@ -8,6 +8,7 @@ import { markedHighlight } from "marked-highlight";
 import hljs from "highlight.js";
 import "highlight.js/styles/github-dark.css";
 import Tooltip from "../../components/Tooltip";
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 const marked = new Marked(
   markedHighlight({
@@ -63,6 +64,7 @@ export default function Markdown() {
   const headingRef = useRef<HTMLButtonElement>(null);
   const [headingOpen, setHeadingOpen] = useState(false);
   const [headingPos, setHeadingPos] = useState<{ x: number; y: number } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<FileInfo | null>(null);
 
   const toggleHeading = () => {
     if (!headingOpen) {
@@ -184,12 +186,13 @@ export default function Markdown() {
       setHtml("");
     }
     await loadFiles();
+    setDeleteTarget(null);
   };
 
   const hasApi = !!api();
 
   return (
-    <div className="flex h-full -m-6">
+    <div className="flex h-[calc(100%+40px)] -m-6 ml-[-32px]">
       <div className="w-48 shrink-0 bg-secondary border-r border-border flex flex-col">
         <div className="p-3 border-b border-border">
           <button
@@ -233,32 +236,43 @@ export default function Markdown() {
                   ${activeFile === f.filename ? "bg-card/80 text-accent font-semibold shadow-sm" : "text-text-secondary hover:bg-card/50 hover:text-text-primary"}`}
               >
                 <span className="truncate flex-1">📄 {f.name}</span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(f.filename);
-                  }}
-                  className="opacity-0 group-hover:opacity-100 text-text-muted hover:text-danger ml-1 shrink-0 transition-all duration-200 p-0.5"
-                  title="删除"
-                >
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
+                <Tooltip text="删除">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteTarget(f);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 text-text-muted hover:text-danger ml-1 shrink-0 transition-all duration-200 p-0.5"
                   >
-                    <line x1="2" y1="2" x2="10" y2="10" />
-                    <line x1="10" y1="2" x2="2" y2="10" />
-                  </svg>
-                </button>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    >
+                      <line x1="2" y1="2" x2="10" y2="10" />
+                      <line x1="10" y1="2" x2="2" y2="10" />
+                    </svg>
+                  </button>
+                </Tooltip>
               </div>
             ))
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="删除文档"
+        message={`确定要删除文档「${deleteTarget?.name}」吗？此操作不可撤销。`}
+        confirmText="删除"
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget.filename)}
+        onCancel={() => setDeleteTarget(null)}
+        danger
+      />
 
       <div className="flex-1 flex flex-col min-w-0">
         {!activeFile ? (
@@ -278,7 +292,16 @@ export default function Markdown() {
                 <span className="w-1.5 h-1.5 rounded-full bg-success" title="已保存" />
               </div>
               <span className="text-[11px] text-text-muted flex items-center gap-1">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
                   <polyline points="17 21 17 13 7 13 7 21" />
                   <polyline points="7 3 7 8 15 8" />

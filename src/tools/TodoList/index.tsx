@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useFileStorage } from "../../hooks/useFileStorage";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import type { Todo, FilterType } from "./types";
 
 export default function TodoList() {
   const [todos, setTodos] = useFileStorage<Todo[]>("todos", []);
   const [input, setInput] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
+  const [deleteTarget, setDeleteTarget] = useState<Todo | null>(null);
 
   const addTodo = () => {
     const text = input.trim();
@@ -26,6 +28,7 @@ export default function TodoList() {
 
   const deleteTodo = (id: string) => {
     setTodos((prev) => prev.filter((t) => t.id !== id));
+    setDeleteTarget(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -124,7 +127,7 @@ export default function TodoList() {
                 {todo.text}
               </span>
               <button
-                onClick={() => deleteTodo(todo.id)}
+                onClick={() => setDeleteTarget(todo)}
                 className="py-1 px-2 rounded-md text-text-muted text-xs cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-danger/10 hover:text-danger shrink-0"
               >
                 删除
@@ -139,6 +142,16 @@ export default function TodoList() {
           共 {todos.length} 项，{activeCount} 项待完成
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="删除待办"
+        message={`确定要删除「${deleteTarget?.text}」吗？`}
+        confirmText="删除"
+        onConfirm={() => deleteTarget && deleteTodo(deleteTarget.id)}
+        onCancel={() => setDeleteTarget(null)}
+        danger
+      />
     </div>
   );
 }
