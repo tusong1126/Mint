@@ -25,7 +25,7 @@ function getInitialThemeId(): string {
     if (stored) return stored
   } catch { /* ignore */ }
   if (window.matchMedia?.('(prefers-color-scheme: light)').matches) return 'light'
-  return 'dark'
+  return 'mint'
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

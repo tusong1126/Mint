@@ -1,25 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import Tooltip from "./components/Tooltip";
-import HomePage from "./tools/HomePage";
-import TodoList from "./tools/TodoList";
-import Markdown from "./tools/Markdown";
-import Memo from "./tools/Memo";
 import Settings from "./tools/Settings";
-
-interface Tool {
-  key: string;
-  name: string;
-  icon: string;
-  desc: string;
-  component: React.ComponentType<{ onNavigate?: (key: string) => void }>;
-}
-
-const allTools: Tool[] = [
-  { key: "home", name: "首页", icon: "🏠", desc: "应用概览", component: HomePage },
-  { key: "todolist", name: "待办事项", icon: "📋", desc: "管理日常任务", component: TodoList },
-  { key: "memo", name: "备忘录", icon: "📒", desc: "记录碎片想法与笔记", component: Memo },
-  { key: "markdown", name: "Markdown", icon: "📝", desc: "编写与预览文档", component: Markdown },
-];
+import { allTools } from "./config/tools";
+import type { Tool } from "./config/tools";
 
 const STORAGE_KEY = "app-favorites";
 

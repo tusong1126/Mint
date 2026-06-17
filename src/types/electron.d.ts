@@ -20,6 +20,7 @@ declare global {
       storage: {
         read: (filename: string) => Promise<any>
         write: (filename: string, data: any) => Promise<boolean>
+        dirs: () => Promise<{ data: string; markdown: string }>
       }
       markdown: {
         list: () => Promise<MarkdownFile[]>

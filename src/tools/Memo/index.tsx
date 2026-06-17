@@ -11,7 +11,15 @@ interface Memo {
 }
 
 export default function Memo() {
-  const [memos, setMemos] = useFileStorage<Memo[]>("memos", []);
+  const [memos, setMemos] = useFileStorage<Memo[]>("memos", [
+    {
+      id: "default-memo",
+      title: "欢迎使用备忘录",
+      content: "这是你的第一条备忘录。你可以在这里记录碎片想法、灵感笔记等内容。所有数据均存储在本地，安全可控。",
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+  ]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);

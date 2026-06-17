@@ -4,7 +4,14 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 import type { Todo, FilterType } from "./types";
 
 export default function TodoList() {
-  const [todos, setTodos] = useFileStorage<Todo[]>("todos", []);
+  const [todos, setTodos] = useFileStorage<Todo[]>("todos", [
+    {
+      id: "default-todo",
+      text: "欢迎使用 Mint！试试勾选或添加待办事项",
+      completed: false,
+      createdAt: Date.now(),
+    },
+  ]);
   const [input, setInput] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
   const [deleteTarget, setDeleteTarget] = useState<Todo | null>(null);

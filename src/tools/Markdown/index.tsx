@@ -51,6 +51,107 @@ const cmTheme = EditorView.theme(
 
 const api = () => (window as any).electronAPI?.markdown;
 
+const defaultName = "欢迎使用";
+const defaultFilename = "欢迎使用.md";
+const defaultContent = `# 欢迎使用 Markdown 🎉
+
+这是你的第一个 Markdown 文档。Markdown 是一种轻量级标记语言，让你专注于内容本身。
+
+---
+
+## 文本样式
+
+- **粗体** 和 *斜体* 以及 ~~删除线~~
+- \`行内代码\` 用于强调代码片段
+- 上标^注^ 和 下标~2~
+
+## 代码块
+
+\`\`\`javascript
+function greet(name) {
+  // 这是一段 JavaScript 代码
+  const msg = \`你好，\${name}！\`;
+  console.log(msg);
+  return msg;
+}
+
+greet("Mint");
+\`\`\`
+
+\`\`\`python
+def fibonacci(n):
+    """生成斐波那契数列"""
+    a, b = 0, 1
+    for _ in range(n):
+        yield a
+        a, b = b, a + b
+
+print(list(fibonacci(10)))
+\`\`\`
+
+\`\`\`css
+.card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--shadow);
+}
+\`\`\`
+
+## 引用与列表
+
+> 这是引用的文字样式，用于突出重要内容或引用他人话语。
+> 多行引用会自动合并显示。
+
+### 无序列表
+
+- 备忘录 — 记录碎片想法
+- 待办事项 — 管理日常任务
+- Markdown — 编写与预览文档
+
+### 有序列表
+
+1. 打开 Mint 应用
+2. 选择左侧边栏的工具
+3. 开始记录你的想法
+
+### 嵌套列表
+
+- 前端技术
+  - HTML / CSS
+  - JavaScript / TypeScript
+  - 框架
+    - React
+    - Vue
+- 后端技术
+  - Node.js
+  - Python
+
+## 表格
+
+| 功能 | 说明 | 状态 |
+|------|------|------|
+| 实时预览 | 右侧同步渲染 HTML | ✅ |
+| 语法高亮 | 支持多种编程语言 | ✅ |
+| 自动保存 | 输入即存，无需手动操作 | ✅ |
+| 工具栏 | 快速插入 Markdown 格式 | ✅ |
+
+## 任务列表
+
+- [x] 熟悉 Markdown 语法
+- [x] 编写示例文档
+- [ ] 尝试更多功能
+- [ ] 创建自己的文档
+---
+
+> 💡 **提示**：你可以删除此文档，或基于它开始编写自己的内容。所有文档存储在本地，安全可控。
+`;
+
 export default function Markdown() {
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [activeFile, setActiveFile] = useState<string | null>(null);
@@ -60,6 +161,7 @@ export default function Markdown() {
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
+  const initRef = useRef(false);
   const editorRef = useRef<ReactCodeMirrorRef>(null);
   const headingRef = useRef<HTMLButtonElement>(null);
   const [headingOpen, setHeadingOpen] = useState(false);
@@ -116,18 +218,10 @@ export default function Markdown() {
     { label: "序号(1.)", title: "有序列表", action: () => insertAtCursor("1. ", "") },
     { label: "引用(>)", title: "引用", action: () => insertAtCursor("> ", "") },
     { label: "分隔线(―)", title: "分割线", action: () => insertAtCursor("\n---\n", "") },
+    { type: "separator" as const },
+    { label: "表格(⊞)", title: "表格", action: () => insertAtCursor("\n| 列1 | 列2 | 列3 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |\n", "") },
+    { label: "任务(☐)", title: "任务列表", action: () => insertAtCursor("- [ ] ", "") },
   ];
-
-  const loadFiles = useCallback(async () => {
-    const md = api();
-    if (!md) return;
-    const list = await md.list();
-    setFiles(list);
-  }, []);
-
-  useEffect(() => {
-    loadFiles();
-  }, [loadFiles]);
 
   const openFile = useCallback(async (filename: string, name: string) => {
     const md = api();
@@ -138,6 +232,30 @@ export default function Markdown() {
     setContent(text);
     setHtml(marked.parse(text) as string);
   }, []);
+
+  const loadFiles = useCallback(async () => {
+    const md = api();
+    if (!md) return;
+    const list = await md.list();
+    if (list.length === 0 && !initRef.current) {
+      initRef.current = true;
+      await md.write(defaultFilename, defaultContent);
+      const updated = await md.list();
+      setFiles(updated);
+      openFile(defaultFilename, defaultName);
+    } else {
+      setFiles(list);
+      if (!initRef.current && list.length === 1 && list[0].filename === defaultFilename) {
+        initRef.current = true;
+        await md.write(defaultFilename, defaultContent);
+        openFile(defaultFilename, defaultName);
+      }
+    }
+  }, [openFile]);
+
+  useEffect(() => {
+    loadFiles();
+  }, [loadFiles]);
 
   const saveFile = useCallback(
     async (filename: string, text: string) => {

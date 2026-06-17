@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   storage: {
     read: (filename) => ipcRenderer.invoke('storage:read', filename),
     write: (filename, data) => ipcRenderer.invoke('storage:write', filename, data),
+    dirs: () => ipcRenderer.invoke('storage:dirs'),
   },
   markdown: {
     list: () => ipcRenderer.invoke('markdown:list'),

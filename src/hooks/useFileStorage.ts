@@ -9,13 +9,16 @@ export function useFileStorage<T>(filename: string, initialValue: T) {
     if (!api?.storage) {
       const item = localStorage.getItem(filename)
       if (item) {
-        try { setValue(JSON.parse(item)) } catch { /* ignore */ }
+        try {
+          const parsed = JSON.parse(item)
+          if (!(Array.isArray(parsed) && parsed.length === 0)) setValue(parsed)
+        } catch { /* ignore */ }
       }
       setLoaded(true)
       return
     }
     api.storage.read(filename).then((data: T | null) => {
-      if (data !== null) setValue(data)
+      if (data !== null && !(Array.isArray(data) && data.length === 0)) setValue(data)
       setLoaded(true)
     })
   }, [filename])

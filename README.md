@@ -35,7 +35,7 @@
 - 系统信息（操作系统、CPU、Electron/Chromium/Node 版本）
 - 应用版本信息
 
-### 🏠 首页仪表盘
+### 🏠 主页仪表盘
 
 - 快速导航卡片
 - 状态概览（工具数量、本地存储、网络请求数）
@@ -85,7 +85,7 @@ electron-test/
 │   │   ├── ThemeContext.tsx       # 主题上下文
 │   │   └── ThemeSwitcher.tsx     # 主题切换组件
 │   └── tools/                    # 功能模块
-│       ├── HomePage/             # 首页仪表盘
+│       ├── HomePage/             # 主页仪表盘
 │       ├── TodoList/             # 待办清单
 │       ├── Markdown/         # Markdown 编辑器
 │       └── Settings/             # 设置页

@@ -69,6 +69,11 @@ ipcMain.handle('storage:write', (_event, filename, data) => {
   }
 })
 
+ipcMain.handle('storage:dirs', () => ({
+  data: STORAGE_DIR,
+  markdown: MD_DIR,
+}))
+
 ipcMain.handle('markdown:list', () => {
   ensureDir(MD_DIR)
   try {

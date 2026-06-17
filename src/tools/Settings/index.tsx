@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import ThemeSwitcher from "../../themes/ThemeSwitcher";
+import Tooltip from "../../components/Tooltip";
+import { getStorageTools } from "../../config/tools";
 
 function getApi() {
   return (window as any).electronAPI;
@@ -9,24 +11,16 @@ function getPlatform() {
   return getApi()?.platform || "darwin";
 }
 
-function getDataDir() {
-  if (getPlatform() === "win32") {
-    return "%APPDATA%\\Mint\\data";
+function getFallbackDir(fileType: "data" | "markdown") {
+  const platform = getPlatform();
+  if (fileType === "markdown") {
+    return platform === "win32" ? "%APPDATA%\\Mint\\markdown" : "~/Library/Application Support/Mint/markdown";
   }
-  return "~/Library/Application Support/Mint/data";
+  return platform === "win32" ? "%APPDATA%\\Mint\\data" : "~/Library/Application Support/Mint/data";
 }
 
-function getMemoDir() {
-  if (getPlatform() === "win32") {
-    return "%APPDATA%\\Mint\\data";
-  }
-  return "~/Library/Application Support/Mint/data";
-}
-function getMarkdownDir() {
-  if (getPlatform() === "win32") {
-    return "%APPDATA%\\Mint\\markdown";
-  }
-  return "~/Library/Application Support/Mint/markdown";
+function getOpenCommand(path: string) {
+  return `open ${path.replace(/ /g, "\\ ")}`;
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -53,6 +47,19 @@ function CopyButton({ text }: { text: string }) {
 }
 
 function PathRow({ label, path }: { label: string; path: string }) {
+  const [cmdCopied, setCmdCopied] = useState(false);
+  const openCmd = getOpenCommand(path);
+
+  const handleCopyCmd = async () => {
+    try {
+      await navigator.clipboard.writeText(openCmd);
+      setCmdCopied(true);
+      setTimeout(() => setCmdCopied(false), 1500);
+    } catch {
+      /* ignore */
+    }
+  };
+
   return (
     <div className="flex items-center justify-between py-2.5">
       <span className="text-sm text-text-primary shrink-0 mr-3 font-medium">{label}</span>
@@ -61,6 +68,14 @@ function PathRow({ label, path }: { label: string; path: string }) {
           {path}
         </code>
         <CopyButton text={path} />
+        <Tooltip text="复制该指令后，打开你的mac终端应用程序，粘贴后回车执行，即可查看你的文件存放位置">
+          <button
+            onClick={handleCopyCmd}
+            className="w-16 text-[11px] py-1 px-2 rounded-md bg-hover text-text-secondary hover:text-accent hover:bg-hover/80 transition-all duration-200 shrink-0 font-medium"
+          >
+            {cmdCopied ? "已复制" : "终端指令"}
+          </button>
+        </Tooltip>
       </div>
     </div>
   );
@@ -82,10 +97,17 @@ export default function Settings() {
   const systemVersion = api?.systemVersion || "";
   const versions = api?.versions;
   const [cpuModel, setCpuModel] = useState("");
+  const [dirs, setDirs] = useState<{ data: string; markdown: string } | null>(null);
 
   useEffect(() => {
     api?.system?.getCpu().then(setCpuModel);
+    api?.storage?.dirs?.().then(setDirs);
   }, []);
+
+  function getDir(fileType: "data" | "markdown"): string {
+    if (dirs) return dirs[fileType];
+    return getFallbackDir(fileType);
+  }
 
   const osMap: Record<string, string> = {
     darwin: "macOS",
@@ -95,6 +117,8 @@ export default function Settings() {
   const osName = osMap[platform] || platform;
   const archLabel = cpuModel || (arch === "arm64" ? "Apple Silicon" : arch === "x64" ? "Intel x64" : arch);
   const osFull = systemVersion ? `${osName} ${systemVersion}` : osName;
+
+  const storageEntries = getStorageTools();
 
   return (
     <div className="max-w-[560px] mx-auto">
@@ -114,11 +138,12 @@ export default function Settings() {
       <section className="mb-8">
         <h3 className="text-xs font-semibold text-text-muted uppercase tracking-widest mb-3">本地存储</h3>
         <div className="bg-card rounded-xl p-5 border border-border/50">
-          <PathRow label="待办事项" path={getDataDir()} />
-          <div className="border-t border-border/50 my-1" />
-          <PathRow label="备忘录" path={getMemoDir()} />
-          <div className="border-t border-border/50 my-1" />
-          <PathRow label="Markdown" path={getMarkdownDir()} />
+          {storageEntries.map((entry, i) => (
+            <Fragment key={entry.key}>
+              <PathRow label={entry.name} path={getDir(entry.fileType!)} />
+              {i < storageEntries.length - 1 && <div className="border-t border-border/50 my-1" />}
+            </Fragment>
+          ))}
         </div>
       </section>
 
