@@ -213,6 +213,35 @@ export default function App() {
           } as React.CSSProperties
         }
       >
+        {!isMac && (
+          <div
+            className="flex items-center ml-auto mr-1.5 mt-1.5"
+            style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
+          >
+            <button
+              className="w-6 h-6 flex items-center justify-center rounded-md text-text-muted hover:text-text-primary hover:bg-hover transition-colors"
+              onClick={() => window.electronAPI?.window?.minimize()}
+              title="最小化"
+            >
+              <MinimizeIcon />
+            </button>
+            <button
+              className="w-6 h-6 flex items-center justify-center rounded-md text-text-muted hover:text-text-primary hover:bg-hover transition-colors"
+              onClick={() => window.electronAPI?.window?.maximize()}
+              title={maximized ? "还原" : "最大化"}
+            >
+              {maximized ? <RestoreIcon /> : <MaximizeIcon />}
+            </button>
+            <button
+              className="w-6 h-6 flex items-center justify-center rounded-md text-text-muted hover:text-white hover:bg-red-500/80 transition-colors"
+              onClick={() => window.electronAPI?.window?.close()}
+              title="关闭"
+            >
+              <CloseIcon />
+            </button>
+          </div>
+        )}
+
         <div className={`flex items-center px-4 py-8 h-[52px] ${collapsed ? "justify-center" : "justify-between"}`}>
           {!collapsed && (
             <button
@@ -223,34 +252,7 @@ export default function App() {
               Mint
             </button>
           )}
-          {!isMac && (
-            <div
-              className="flex items-center gap-1 ml-auto"
-              style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
-            >
-              <button
-                className="w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-text-primary hover:bg-hover transition-colors"
-                onClick={() => window.electronAPI?.window?.minimize()}
-                title="最小化"
-              >
-                <MinimizeIcon />
-              </button>
-              <button
-                className="w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-text-primary hover:bg-hover transition-colors"
-                onClick={() => window.electronAPI?.window?.maximize()}
-                title={maximized ? "还原" : "最大化"}
-              >
-                {maximized ? <RestoreIcon /> : <MaximizeIcon />}
-              </button>
-              <button
-                className="w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-white hover:bg-red-500/80 transition-colors"
-                onClick={() => window.electronAPI?.window?.close()}
-                title="关闭"
-              >
-                <CloseIcon />
-              </button>
-            </div>
-          )}
+
           <button
             className={`w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-text-primary hover:bg-hover transition-colors shrink-0 ${!collapsed && isMac ? "ml-auto" : ""}`}
             style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
