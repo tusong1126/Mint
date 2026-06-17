@@ -1,10 +1,11 @@
 const tools = [
-  { icon: '📋', name: '待办事项', desc: '管理日常任务', key: 'todolist' },
-  { icon: '📝', name: 'Markdown', desc: '编写与预览文档', key: 'markdown' },
-]
+  { icon: "📋", name: "待办事项", desc: "管理日常任务", key: "todolist" },
+  { icon: "📒", name: "备忘录", desc: "记录碎片想法与笔记", key: "memo" },
+  { icon: "📝", name: "Markdown", desc: "编写与预览文档", key: "markdown" },
+];
 
 interface Props {
-  onNavigate?: (key: string) => void
+  onNavigate?: (key: string) => void;
 }
 
 export default function HomePage({ onNavigate }: Props) {
@@ -35,9 +36,9 @@ export default function HomePage({ onNavigate }: Props) {
 
       <div className="flex justify-center gap-10 p-6 bg-card rounded-xl border border-border/50">
         {[
-          { num: '2', label: '可用工具', desc: '持续扩展中' },
-          { num: '100%', label: '本地存储', desc: '数据自主可控' },
-          { num: '0', label: '网络请求', desc: '完全离线运行' },
+          { num: "3", label: "可用工具", desc: "持续扩展中" },
+          { num: "100%", label: "本地存储", desc: "数据自主可控" },
+          { num: "0", label: "网络请求", desc: "完全离线运行" },
         ].map((s) => (
           <div key={s.label} className="text-center">
             <span className="block text-[28px] font-bold text-accent leading-none mb-1">{s.num}</span>
@@ -47,5 +48,5 @@ export default function HomePage({ onNavigate }: Props) {
         ))}
       </div>
     </div>
-  )
+  );
 }

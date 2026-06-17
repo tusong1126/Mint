@@ -16,6 +16,12 @@ function getDataDir() {
   return "~/Library/Application Support/Mint/data";
 }
 
+function getMemoDir() {
+  if (getPlatform() === "win32") {
+    return "%APPDATA%\\Mint\\data";
+  }
+  return "~/Library/Application Support/Mint/data";
+}
 function getMarkdownDir() {
   if (getPlatform() === "win32") {
     return "%APPDATA%\\Mint\\markdown";
@@ -51,7 +57,9 @@ function PathRow({ label, path }: { label: string; path: string }) {
     <div className="flex items-center justify-between py-2.5">
       <span className="text-sm text-text-primary shrink-0 mr-3 font-medium">{label}</span>
       <div className="flex items-center gap-2 min-w-0">
-        <code className="text-xs text-text-muted truncate max-w-[280px] bg-primary px-2.5 py-1 rounded-md border border-border/50">{path}</code>
+        <code className="text-xs text-text-muted truncate max-w-[280px] bg-primary px-2.5 py-1 rounded-md border border-border/50">
+          {path}
+        </code>
         <CopyButton text={path} />
       </div>
     </div>
@@ -107,6 +115,8 @@ export default function Settings() {
         <h3 className="text-xs font-semibold text-text-muted uppercase tracking-widest mb-3">本地存储</h3>
         <div className="bg-card rounded-xl p-5 border border-border/50">
           <PathRow label="待办事项" path={getDataDir()} />
+          <div className="border-t border-border/50 my-1" />
+          <PathRow label="备忘录" path={getMemoDir()} />
           <div className="border-t border-border/50 my-1" />
           <PathRow label="Markdown" path={getMarkdownDir()} />
         </div>

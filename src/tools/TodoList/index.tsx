@@ -1,53 +1,51 @@
-import { useState } from 'react'
-import { useFileStorage } from '../../hooks/useFileStorage'
-import type { Todo, FilterType } from './types'
+import { useState } from "react";
+import { useFileStorage } from "../../hooks/useFileStorage";
+import type { Todo, FilterType } from "./types";
 
 export default function TodoList() {
-  const [todos, setTodos] = useFileStorage<Todo[]>('todos', [])
-  const [input, setInput] = useState('')
-  const [filter, setFilter] = useState<FilterType>('all')
+  const [todos, setTodos] = useFileStorage<Todo[]>("todos", []);
+  const [input, setInput] = useState("");
+  const [filter, setFilter] = useState<FilterType>("all");
 
   const addTodo = () => {
-    const text = input.trim()
-    if (!text) return
+    const text = input.trim();
+    if (!text) return;
     const newTodo: Todo = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       text,
       completed: false,
       createdAt: Date.now(),
-    }
-    setTodos((prev) => [newTodo, ...prev])
-    setInput('')
-  }
+    };
+    setTodos((prev) => [newTodo, ...prev]);
+    setInput("");
+  };
 
   const toggleTodo = (id: string) => {
-    setTodos((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)),
-    )
-  }
+    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)));
+  };
 
   const deleteTodo = (id: string) => {
-    setTodos((prev) => prev.filter((t) => t.id !== id))
-  }
+    setTodos((prev) => prev.filter((t) => t.id !== id));
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') addTodo()
-  }
+    if (e.key === "Enter") addTodo();
+  };
 
   const filtered = todos.filter((t) => {
-    if (filter === 'active') return !t.completed
-    if (filter === 'completed') return t.completed
-    return true
-  })
+    if (filter === "active") return !t.completed;
+    if (filter === "completed") return t.completed;
+    return true;
+  });
 
-  const activeCount = todos.filter((t) => !t.completed).length
-  const completedCount = todos.filter((t) => t.completed).length
+  const activeCount = todos.filter((t) => !t.completed).length;
+  const completedCount = todos.filter((t) => t.completed).length;
 
   const filters: { key: FilterType; label: string }[] = [
-    { key: 'all', label: `全部 (${todos.length})` },
-    { key: 'active', label: `待完成 (${activeCount})` },
-    { key: 'completed', label: `已完成 (${completedCount})` },
-  ]
+    { key: "all", label: `全部 (${todos.length})` },
+    { key: "active", label: `待完成 (${activeCount})` },
+    { key: "completed", label: `已完成 (${completedCount})` },
+  ];
 
   return (
     <div className="max-w-[560px] mx-auto">
@@ -75,9 +73,10 @@ export default function TodoList() {
             key={f.key}
             onClick={() => setFilter(f.key)}
             className={`flex-1 py-2 px-3 rounded-md text-xs font-medium transition-all duration-200
-              ${filter === f.key
-                ? 'bg-primary text-accent shadow-sm'
-                : 'text-text-secondary hover:text-text-primary hover:bg-hover'
+              ${
+                filter === f.key
+                  ? "bg-primary text-accent shadow-sm"
+                  : "text-text-secondary hover:text-text-primary hover:bg-hover"
               }`}
           >
             {f.label}
@@ -87,7 +86,7 @@ export default function TodoList() {
 
       {filtered.length === 0 ? (
         <div className="text-center py-12 text-text-secondary/50 text-[13px] bg-card/50 rounded-xl border border-dashed border-border">
-          {filter === 'all' ? '暂无待办事项，添加一个吧' : filter === 'active' ? '所有事项已完成 🎉' : '暂无已完成事项'}
+          {filter === "all" ? "暂无待办事项，添加一个吧" : filter === "active" ? "所有事项已完成 🎉" : "暂无已完成事项"}
         </div>
       ) : (
         <ul className="flex flex-col gap-2">
@@ -101,21 +100,26 @@ export default function TodoList() {
                 aria-checked={todo.completed}
                 tabIndex={0}
                 onClick={() => toggleTodo(todo.id)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleTodo(todo.id) }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") toggleTodo(todo.id);
+                }}
                 className={`w-[20px] h-[20px] border-2 rounded-full cursor-pointer shrink-0 flex items-center justify-center transition-all duration-200
-                  ${todo.completed
-                    ? 'bg-success border-success'
-                    : 'border-text-muted/40 hover:border-accent/60'
-                  }`}
+                  ${todo.completed ? "bg-success border-success" : "border-text-muted/40 hover:border-accent/60"}`}
               >
                 {todo.completed && (
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path
+                      d="M2.5 6L5 8.5L9.5 3.5"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 )}
               </div>
               <span
-                className={`flex-1 text-sm break-words transition-all duration-200 ${todo.completed ? 'line-through text-text-secondary/40' : 'text-text-primary'}`}
+                className={`flex-1 text-sm break-words transition-all duration-200 ${todo.completed ? "line-through text-text-secondary/40" : "text-text-primary"}`}
               >
                 {todo.text}
               </span>
@@ -136,5 +140,5 @@ export default function TodoList() {
         </div>
       )}
     </div>
-  )
+  );
 }

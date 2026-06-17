@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import HomePage from "./tools/HomePage";
 import TodoList from "./tools/TodoList";
 import MarkdownTool from "./tools/MarkdownTool";
+import Memo from "./tools/Memo";
 import Settings from "./tools/Settings";
 
 interface Tool {
@@ -15,6 +16,7 @@ interface Tool {
 const allTools: Tool[] = [
   { key: "home", name: "首页", icon: "🏠", desc: "应用概览", component: HomePage },
   { key: "todolist", name: "待办事项", icon: "📋", desc: "管理日常任务", component: TodoList },
+  { key: "memo", name: "备忘录", icon: "📒", desc: "记录碎片想法与笔记", component: Memo },
   { key: "markdown", name: "Markdown", icon: "📝", desc: "编写与预览文档", component: MarkdownTool },
 ];
 
@@ -43,7 +45,16 @@ const SIDEBAR_COLLAPSED = 72;
 
 function SidebarCollapseIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 18 18"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <rect x="1.5" y="2.5" width="15" height="13" rx="2" />
       <line x1="11.5" y1="6" x2="11.5" y2="12" />
       <path d="M8.5 7.5L6.5 9l2 1.5" />
@@ -53,7 +64,16 @@ function SidebarCollapseIcon() {
 
 function SidebarExpandIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 18 18"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <rect x="1.5" y="2.5" width="15" height="13" rx="2" />
       <line x1="6.5" y1="6" x2="6.5" y2="12" />
       <path d="M9.5 7.5l2 1.5-2 1.5" />
@@ -294,7 +314,8 @@ export default function App() {
                 </svg>
               </div>
             )}
-            {!collapsed && toolboxOpen &&
+            {!collapsed &&
+              toolboxOpen &&
               allTools.filter((t) => t.key !== "home").map((tool) => <NavTool key={tool.key} tool={tool} showPin />)}
           </div>
         </nav>
