@@ -9,20 +9,20 @@ interface Props {
 
 export default function HomePage({ onNavigate }: Props) {
   return (
-    <div className="max-w-[600px] mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="text-[22px] font-bold mb-1.5">欢迎使用 Mint</h2>
-        <p className="text-[13px] text-text-muted">个人效率工具集，所有数据本地存储，安全可控</p>
+    <div className="max-w-[640px] mx-auto">
+      <div className="text-center mb-10">
+        <h2 className="text-[24px] font-bold mb-2 text-text-primary">欢迎使用 Mint</h2>
+        <p className="text-[13px] text-text-muted leading-relaxed">个人效率工具集，所有数据本地存储，安全可控</p>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3 mb-8">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4 mb-10">
         {tools.map((tool) => (
           <button
             key={tool.key}
             onClick={() => onNavigate?.(tool.key)}
-            className="flex items-center gap-3.5 p-[18px] bg-card border border-transparent rounded-lg cursor-pointer transition-all duration-150 hover:border-accent hover:-translate-y-px text-left font-inherit text-inherit"
+            className="flex items-center gap-4 p-5 bg-card rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 text-left border border-border/50 hover:border-accent/30 group"
           >
-            <span className="text-[28px] w-11 h-11 flex items-center justify-center bg-primary rounded-[10px] shrink-0">
+            <span className="text-[28px] w-12 h-12 flex items-center justify-center bg-primary rounded-xl shrink-0 group-hover:bg-accent/10 transition-colors">
               {tool.icon}
             </span>
             <div>
@@ -33,15 +33,16 @@ export default function HomePage({ onNavigate }: Props) {
         ))}
       </div>
 
-      <div className="flex justify-center gap-8 p-5 bg-card rounded-lg">
+      <div className="flex justify-center gap-10 p-6 bg-card rounded-xl border border-border/50">
         {[
-          { num: '2', label: '可用工具' },
-          { num: '100%', label: '本地存储' },
-          { num: '0', label: '网络请求' },
+          { num: '2', label: '可用工具', desc: '持续扩展中' },
+          { num: '100%', label: '本地存储', desc: '数据自主可控' },
+          { num: '0', label: '网络请求', desc: '完全离线运行' },
         ].map((s) => (
           <div key={s.label} className="text-center">
-            <span className="block text-2xl font-bold text-accent">{s.num}</span>
-            <span className="block text-[11px] text-text-muted mt-0.5">{s.label}</span>
+            <span className="block text-[28px] font-bold text-accent leading-none mb-1">{s.num}</span>
+            <span className="block text-[13px] font-semibold text-text-primary">{s.label}</span>
+            <span className="block text-[11px] text-text-muted mt-0.5">{s.desc}</span>
           </div>
         ))}
       </div>
