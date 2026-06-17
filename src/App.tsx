@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
+import Tooltip from "./components/Tooltip";
 import HomePage from "./tools/HomePage";
 import TodoList from "./tools/TodoList";
-import MarkdownTool from "./tools/MarkdownTool";
+import Markdown from "./tools/Markdown";
 import Memo from "./tools/Memo";
 import Settings from "./tools/Settings";
 
@@ -17,7 +18,7 @@ const allTools: Tool[] = [
   { key: "home", name: "首页", icon: "🏠", desc: "应用概览", component: HomePage },
   { key: "todolist", name: "待办事项", icon: "📋", desc: "管理日常任务", component: TodoList },
   { key: "memo", name: "备忘录", icon: "📒", desc: "记录碎片想法与笔记", component: Memo },
-  { key: "markdown", name: "Markdown", icon: "📝", desc: "编写与预览文档", component: MarkdownTool },
+  { key: "markdown", name: "Markdown", icon: "📝", desc: "编写与预览文档", component: Markdown },
 ];
 
 const STORAGE_KEY = "app-favorites";
@@ -199,17 +200,18 @@ export default function App() {
           {!collapsed && <span className="overflow-hidden text-ellipsis flex-1">{tool.name}</span>}
         </button>
         {showPin && !collapsed && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleFavorite(tool.key);
-            }}
-            className={`absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md transition-all duration-200 opacity-0 group-hover:opacity-100
-              ${favorites.includes(tool.key) ? "text-accent opacity-100" : "text-text-muted hover:text-accent"}`}
-            title={favorites.includes(tool.key) ? "取消固定" : "固定到常用"}
-          >
-            <PinIcon pinned={favorites.includes(tool.key)} />
-          </button>
+          <Tooltip text={favorites.includes(tool.key) ? "取消常用" : "标记常用"}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFavorite(tool.key);
+              }}
+              className={`absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md transition-all duration-200 opacity-0 group-hover:opacity-100
+                ${favorites.includes(tool.key) ? "text-accent opacity-100" : "text-text-muted hover:text-accent"}`}
+            >
+              <PinIcon pinned={favorites.includes(tool.key)} />
+            </button>
+          </Tooltip>
         )}
       </div>
     );
@@ -228,7 +230,7 @@ export default function App() {
           } as React.CSSProperties
         }
       >
-        <div className={`flex items-center px-3 py-4 h-[52px] ${collapsed ? "justify-center" : "justify-between"}`}>
+        <div className={`flex items-center px-4 py-8 h-[52px] ${collapsed ? "justify-center" : "justify-between"}`}>
           {!collapsed && (
             <button
               onClick={() => setActiveTool("home")}

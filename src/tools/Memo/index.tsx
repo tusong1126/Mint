@@ -93,10 +93,13 @@ export default function Memo() {
     return { start: 0, end: Infinity };
   };
 
-  const timeFiltered = timeFilter === "all" ? memos : memos.filter((m) => {
-    const range = getTimeRange(timeFilter);
-    return m.createdAt >= range.start && m.createdAt < range.end;
-  });
+  const timeFiltered =
+    timeFilter === "all"
+      ? memos
+      : memos.filter((m) => {
+          const range = getTimeRange(timeFilter);
+          return m.createdAt >= range.start && m.createdAt < range.end;
+        });
 
   const filtered = search.trim()
     ? timeFiltered.filter(
@@ -133,7 +136,7 @@ export default function Memo() {
                 <button
                   key={f}
                   onClick={() => setTimeFilter(f)}
-                  className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-all duration-200
+                  className={`flex-1 py-1.5 rounded-md text-[10px] font-medium transition-all duration-200
                     ${
                       timeFilter === f
                         ? "bg-primary text-accent shadow-sm"
@@ -188,21 +191,21 @@ export default function Memo() {
                       )}
                     </div>
                     {hoveredId === memo.id && (
-                    <div className="flex border-t border-border/30">
-                      <button
-                        onClick={() => startEdit(memo)}
-                        className="flex-1 py-2 text-[12px] text-text-secondary hover:text-accent hover:bg-hover transition-colors cursor-pointer"
-                      >
-                        编辑
-                      </button>
-                      <button
-                        onClick={() => deleteMemo(memo.id)}
-                        className="flex-1 py-2 text-[12px] text-text-secondary hover:text-danger hover:bg-danger/5 transition-colors cursor-pointer border-l border-border/30"
-                      >
-                        删除
-                      </button>
-                    </div>
-                  )}
+                      <div className="flex border-t border-border/30">
+                        <button
+                          onClick={() => startEdit(memo)}
+                          className="flex-1 py-2 text-[12px] text-text-secondary hover:text-accent hover:bg-hover transition-colors cursor-pointer"
+                        >
+                          编辑
+                        </button>
+                        <button
+                          onClick={() => deleteMemo(memo.id)}
+                          className="flex-1 py-2 text-[12px] text-text-secondary hover:text-danger hover:bg-danger/5 transition-colors cursor-pointer border-l border-border/30"
+                        >
+                          删除
+                        </button>
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>
