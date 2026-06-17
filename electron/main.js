@@ -223,20 +223,31 @@ function readFileUrl() {
     return ''
   }
   try {
+    const name = clipboard.read('FileName')
+    if (name && name.trim()) {
+      const trimmed = name.trim()
+      if (trimmed.includes('\\') || trimmed.includes('/') || trimmed.includes(':')) return trimmed
+    }
+  } catch { /* ignore */ }
+  try {
     const name = clipboard.read('FileNameW')
-    if (name) return name
+    if (name && name.trim()) {
+      const trimmed = name.trim()
+      if (trimmed.includes('\\') || trimmed.includes('/') || trimmed.includes(':')) return trimmed
+    }
   } catch { /* ignore */ }
   try {
     const psScript = `
+      [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
       Add-Type -AssemblyName System.Windows.Forms
       $files = [System.Windows.Forms.Clipboard]::GetFileDropList()
-      if ($files.Count -gt 0) { Write-Output $files[0] }
+      if ($files.Count -gt 0) { [System.Console]::Write($files[0]) }
     `
     const result = execSync(
-      `powershell -NoProfile -Command "${psScript.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`,
+      `powershell -NoProfile -NonInteractive -Command "${psScript.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`,
       { encoding: 'utf-8', timeout: 3000 }
-    ).trim()
-    if (result) return result
+    ).replace(/^\uFEFF/, '').trim()
+    if (result && (result.includes('\\') || result.includes('/') || result.includes(':'))) return result
   } catch { /* ignore */ }
   return ''
 }
@@ -313,19 +324,22 @@ ipcMain.handle('clipboard:paste', () => {
 
 ipcMain.handle('clipboard:openFileLocation', (_event, filePath) => {
   try {
-    if (fs.existsSync(filePath)) {
-      shell.showItemInFolder(filePath)
-      return true
+    if (!filePath) return '路径为空'
+    const normalized = filePath.replace(/\//g, path.sep)
+    if (fs.existsSync(normalized)) {
+      shell.showItemInFolder(normalized)
+      return 'ok'
     }
-    const dir = path.dirname(filePath)
+    const dir = path.dirname(normalized)
     if (fs.existsSync(dir)) {
       shell.openPath(dir)
-      return true
+      return 'ok'
     }
+    return `文件不存在: ${normalized}`
   } catch (e) {
     console.error('[clipboard] openFileLocation error:', e)
+    return String(e)
   }
-  return false
 })
 
 ipcMain.handle('clipboard:deleteImage', (_event, imagePath) => {

@@ -54,7 +54,7 @@ declare global {
         copyImage: (imagePath: string) => Promise<boolean>
         readImageFull: (imagePath: string) => Promise<string | null>
         deleteImage: (imagePath: string) => Promise<boolean>
-        openFileLocation: (filePath: string) => Promise<boolean>
+        openFileLocation: (filePath: string) => Promise<string>
         paste: () => Promise<void>
         startWatch: () => Promise<void>
         stopWatch: () => Promise<void>

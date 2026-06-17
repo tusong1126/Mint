@@ -114,11 +114,14 @@ export default function ClipboardItem({
   const isImage = record.type === "image";
   const isFile = record.type === "file";
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = async (e: React.MouseEvent) => {
     if (isFile && record.filePath) {
       e.stopPropagation();
       const api = (window as any).electronAPI;
-      api?.clipboard?.openFileLocation(record.filePath);
+      const result = await api?.clipboard?.openFileLocation(record.filePath);
+      if (result && result !== 'ok') {
+        console.error('[clipboard] openFileLocation:', result);
+      }
     } else {
       onPreview(record);
     }

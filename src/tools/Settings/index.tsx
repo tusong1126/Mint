@@ -20,7 +20,10 @@ function getFallbackDir(fileType: "data" | "markdown") {
 }
 
 function getOpenCommand(path: string) {
-  return `open ${path.replace(/ /g, "\\ ")}`;
+  const platform = getPlatform();
+  const escaped = path.replace(/ /g, "\\ ");
+  if (platform === "win32") return `start ${escaped}`;
+  return `open ${escaped}`;
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -68,7 +71,7 @@ function PathRow({ label, path }: { label: string; path: string }) {
           {path}
         </code>
         <CopyButton text={path} />
-        <Tooltip text="复制该指令后，打开你的mac终端应用程序，粘贴后回车执行，即可查看你的文件存放位置">
+        <Tooltip text="复制该指令后，打开你的终端应用程序，粘贴后回车执行，即可查看你的文件存放位置">
           <button
             onClick={handleCopyCmd}
             className="w-16 text-[11px] py-1 px-2 rounded-md bg-hover text-text-secondary hover:text-accent hover:bg-hover/80 transition-all duration-200 shrink-0 font-medium"
