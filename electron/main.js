@@ -8,6 +8,7 @@ let clipboardTimer = null
 let lastClipboardText = ''
 let lastImageHash = ''
 
+let lastFilePath = ''
 const isMac = process.platform === 'darwin'
 
 const STORAGE_DIR = path.join(app.getPath('userData'), 'data')
@@ -225,6 +226,18 @@ function readFileUrl() {
     const name = clipboard.read('FileNameW')
     if (name) return name
   } catch { /* ignore */ }
+  try {
+    const psScript = `
+      Add-Type -AssemblyName System.Windows.Forms
+      $files = [System.Windows.Forms.Clipboard]::GetFileDropList()
+      if ($files.Count -gt 0) { Write-Output $files[0] }
+    `
+    const result = execSync(
+      `powershell -NoProfile -Command "${psScript.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`,
+      { encoding: 'utf-8', timeout: 3000 }
+    ).trim()
+    if (result) return result
+  } catch { /* ignore */ }
   return ''
 }
 
@@ -233,22 +246,19 @@ ipcMain.handle('clipboard:startWatch', () => {
   lastClipboardText = clipboard.readText()
   const img = clipboard.readImage()
   lastImageHash = img.isEmpty() ? '' : img.resize({ width: 20 }).toDataURL()
+  lastFilePath = readFileUrl()
   clipboardTimer = setInterval(() => {
     const currentText = clipboard.readText()
     const currentImage = clipboard.readImage()
     const filePath = readFileUrl()
 
-    if (filePath && currentText && !currentImage.isEmpty()) {
-      const hash = currentImage.resize({ width: 20 }).toDataURL()
-      if (hash !== lastImageHash || currentText !== lastClipboardText) {
-        lastImageHash = hash
-        lastClipboardText = currentText
-        const data = saveClipboardImage()
-        if (data) {
-          mainWindow?.webContents.send('clipboard:changed', { type: 'file', content: currentText, filePath, ...data })
-        }
-        return
-      }
+    if (filePath && filePath !== lastFilePath) {
+      lastFilePath = filePath
+      lastImageHash = currentImage.isEmpty() ? '' : currentImage.resize({ width: 20 }).toDataURL()
+      lastClipboardText = currentText
+      const data = saveClipboardImage() || {}
+      mainWindow?.webContents.send('clipboard:changed', { type: 'file', content: currentText || path.basename(filePath), filePath, ...data })
+      return
     }
 
     if (!currentImage.isEmpty()) {
