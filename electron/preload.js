@@ -32,4 +32,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.on('window:maximized', (_event, maximized) => callback(maximized))
     },
   },
+  clipboard: {
+    write: (text) => ipcRenderer.invoke('clipboard:write', text),
+    copyImage: (imagePath) => ipcRenderer.invoke('clipboard:copyImage', imagePath),
+    readImageFull: (imagePath) => ipcRenderer.invoke('clipboard:readImageFull', imagePath),
+    deleteImage: (imagePath) => ipcRenderer.invoke('clipboard:deleteImage', imagePath),
+    openFileLocation: (filePath) => ipcRenderer.invoke('clipboard:openFileLocation', filePath),
+    paste: () => ipcRenderer.invoke('clipboard:paste'),
+    startWatch: () => ipcRenderer.invoke('clipboard:startWatch'),
+    stopWatch: () => ipcRenderer.invoke('clipboard:stopWatch'),
+    onChanged: (callback) => {
+      ipcRenderer.on('clipboard:changed', (_event, data) => callback(data))
+    },
+    removeChanged: () => {
+      ipcRenderer.removeAllListeners('clipboard:changed')
+    },
+  },
 })

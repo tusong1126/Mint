@@ -77,7 +77,7 @@ export default function HomePage({ onNavigate }: Props) {
       >
         <div className="grid grid-cols-3" style={{ transformStyle: "preserve-3d" }}>
           {[
-            { num: "4", label: "可用工具", desc: "持续扩展中" },
+            { num: "5", label: "可用工具", desc: "持续扩展中" },
             { num: "100%", label: "本地存储", desc: "数据自主可控" },
             { num: "0", label: "网络请求", desc: "完全离线运行" },
           ].map((s) => (

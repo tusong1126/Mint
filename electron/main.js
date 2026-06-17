@@ -1,14 +1,18 @@
-const { app, BrowserWindow, ipcMain } = require('electron')
+const { app, BrowserWindow, ipcMain, clipboard, nativeImage, shell } = require('electron')
 const path = require('path')
 const fs = require('fs')
 const { execSync } = require('child_process')
 
 let mainWindow
+let clipboardTimer = null
+let lastClipboardText = ''
+let lastImageHash = ''
 
 const isMac = process.platform === 'darwin'
 
 const STORAGE_DIR = path.join(app.getPath('userData'), 'data')
 const MD_DIR = path.join(app.getPath('userData'), 'markdown')
+const IMG_DIR = path.join(app.getPath('userData'), 'clipboard-images')
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) {
@@ -159,6 +163,172 @@ ipcMain.handle('window:close', () => {
 
 ipcMain.handle('window:isMaximized', () => {
   return mainWindow?.isMaximized() ?? false
+})
+
+// ── Clipboard ──
+
+ipcMain.handle('clipboard:write', (_event, text) => {
+  clipboard.writeText(text)
+})
+
+ipcMain.handle('clipboard:copyImage', (_event, imagePath) => {
+  try {
+    const img = nativeImage.createFromPath(imagePath)
+    if (!img.isEmpty()) {
+      clipboard.writeImage(img)
+      return true
+    }
+  } catch { /* ignore */ }
+  return false
+})
+
+function saveClipboardImage() {
+  const img = clipboard.readImage()
+  if (img.isEmpty()) return null
+  ensureDir(IMG_DIR)
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
+  const filePath = path.join(IMG_DIR, `${id}.png`)
+  fs.writeFileSync(filePath, img.toPNG())
+  const thumbBuf = img.resize({ width: 150 }).toJPEG(75)
+  const thumbBase64 = `data:image/jpeg;base64,${thumbBuf.toString('base64')}`
+  const size = img.getSize()
+  return { id, imagePath: filePath, thumbnail: thumbBase64, width: size.width, height: size.height }
+}
+
+function readFileUrl() {
+  if (isMac) {
+    try {
+      const plist = clipboard.read('NSFilenamesPboardType')
+      if (plist) {
+        if (plist.startsWith('<?xml') || plist.startsWith('<')) {
+          const match = plist.match(/<string>(.*?)<\/string>/g)
+          if (match) {
+            const paths = match.map(s => s.replace(/<\/?string>/g, '')).filter(Boolean)
+            if (paths.length > 0) return paths[0]
+          }
+        } else {
+          const lines = plist.split('\n').map(l => l.trim()).filter(Boolean)
+          if (lines.length > 0) return lines[0]
+        }
+      }
+    } catch { /* ignore */ }
+    try {
+      const path = execSync(
+        `osascript -e 'try' -e 'POSIX path of (item 1 of (get the clipboard as «class furl»))' -e 'end try' 2>/dev/null || echo ""`,
+        { encoding: 'utf-8', timeout: 3000 }
+      ).trim()
+      if (path) return path
+    } catch { /* ignore */ }
+    return ''
+  }
+  try {
+    const name = clipboard.read('FileNameW')
+    if (name) return name
+  } catch { /* ignore */ }
+  return ''
+}
+
+ipcMain.handle('clipboard:startWatch', () => {
+  if (clipboardTimer) return
+  lastClipboardText = clipboard.readText()
+  const img = clipboard.readImage()
+  lastImageHash = img.isEmpty() ? '' : img.resize({ width: 20 }).toDataURL()
+  clipboardTimer = setInterval(() => {
+    const currentText = clipboard.readText()
+    const currentImage = clipboard.readImage()
+    const filePath = readFileUrl()
+
+    if (filePath && currentText && !currentImage.isEmpty()) {
+      const hash = currentImage.resize({ width: 20 }).toDataURL()
+      if (hash !== lastImageHash || currentText !== lastClipboardText) {
+        lastImageHash = hash
+        lastClipboardText = currentText
+        const data = saveClipboardImage()
+        if (data) {
+          mainWindow?.webContents.send('clipboard:changed', { type: 'file', content: currentText, filePath, ...data })
+        }
+        return
+      }
+    }
+
+    if (!currentImage.isEmpty()) {
+      const hash = currentImage.resize({ width: 20 }).toDataURL()
+      if (hash !== lastImageHash) {
+        lastImageHash = hash
+        lastClipboardText = currentText
+        const data = saveClipboardImage()
+        if (data) {
+          mainWindow?.webContents.send('clipboard:changed', { type: 'image', ...data })
+        }
+        return
+      }
+    }
+
+    if (currentText && currentText !== lastClipboardText) {
+      lastClipboardText = currentText
+      mainWindow?.webContents.send('clipboard:changed', { type: 'text', content: currentText })
+    }
+  }, 500)
+})
+
+ipcMain.handle('clipboard:stopWatch', () => {
+  if (clipboardTimer) {
+    clearInterval(clipboardTimer)
+    clipboardTimer = null
+  }
+})
+
+ipcMain.handle('clipboard:readImageFull', (_event, imagePath) => {
+  try {
+    const img = nativeImage.createFromPath(imagePath)
+    if (!img.isEmpty()) {
+      const buf = img.toJPEG(85)
+      return `data:image/jpeg;base64,${buf.toString('base64')}`
+    }
+  } catch { /* ignore */ }
+  return null
+})
+
+ipcMain.handle('clipboard:paste', () => {
+  if (isMac) {
+    execSync(`osascript -e 'tell application "System Events" to keystroke "v" using command down'`)
+  } else {
+    const script = `
+      Add-Type -AssemblyName System.Windows.Forms
+      [System.Windows.Forms.SendKeys]::SendWait("^v")
+    `
+    execSync(`powershell -NoProfile -Command "${script.replace(/"/g, '\\"')}"`)
+  }
+})
+
+ipcMain.handle('clipboard:openFileLocation', (_event, filePath) => {
+  try {
+    if (fs.existsSync(filePath)) {
+      shell.showItemInFolder(filePath)
+      return true
+    }
+    const dir = path.dirname(filePath)
+    if (fs.existsSync(dir)) {
+      shell.openPath(dir)
+      return true
+    }
+  } catch (e) {
+    console.error('[clipboard] openFileLocation error:', e)
+  }
+  return false
+})
+
+ipcMain.handle('clipboard:deleteImage', (_event, imagePath) => {
+  try {
+    if (fs.existsSync(imagePath)) {
+      fs.unlinkSync(imagePath)
+    }
+    const thumbPath = imagePath.replace(/\.png$/, '-thumb.png')
+    if (fs.existsSync(thumbPath)) {
+      fs.unlinkSync(thumbPath)
+    }
+    return true
+  } catch { return false }
 })
 
 app.whenReady().then(() => {
